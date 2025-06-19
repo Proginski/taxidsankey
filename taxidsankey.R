@@ -34,7 +34,8 @@ taxidsankey <- function(
   taxid_file = NULL,
   rankedlineage_file = rankedlineage_path,
   output_html = "sankey_diagram.html",
-  ranks = c("domain", "superkingdom", "kingdom", "phylum", "class", "order", "family", "genus", "species")
+  ranks = c("domain", "superkingdom", "kingdom", "phylum", "class", "order", "family", "genus", "species"),
+  fill = FALSE
 ) {
   # Define all possible ranks in order from domain to species
   all_ranks <- c("domain", "superkingdom", "kingdom", "phylum", "class", "order", "family", "genus", "species")
@@ -45,6 +46,7 @@ taxidsankey <- function(
   }
   
   # Load the rankedlineage.dmp file
+  print("Loading rankedlineage.dmp file...")
   rankedlineage <- read.table(
     rankedlineage_file,
     sep = "|",
@@ -54,6 +56,7 @@ taxidsankey <- function(
     header = FALSE,
     stringsAsFactors = FALSE
   )
+  print("Ranked lineage file loaded.")
   rankedlineage <- rankedlineage[, -11]
   colnames(rankedlineage) <- c(
     "taxid", "species", "genus", "family", "order", "class", "phylum", "kingdom", "superkingdom", "domain"
@@ -71,7 +74,17 @@ taxidsankey <- function(
   # Build links for the selected ranks
   links_list <- list()
   for (i in 1:nrow(filtered_rows)) {
-    lineage <- as.character(filtered_rows[i, ranks])
+    row <- filtered_rows[i, ]
+    # print(paste("row",row,sep=""))
+    if (fill) {
+      blank_ranks <- row==""
+      newrow <- c(row[blank_ranks], row[!blank_ranks])
+      # print(paste("newrow",row,sep=""))
+      names(newrow) <- names(row)
+      row <- newrow
+    }
+    lineage <- row[ranks]
+    # lineage <- as.character(filtered_rows[i, ranks])
     lineage <- lineage[lineage != ""]
     if (length(lineage) < 2) next
     for (j in 1:(length(lineage) - 1)) {
@@ -111,6 +124,7 @@ if (interactive() == FALSE) {
   parser$add_argument("-r", "--ranks", default="domain,superkingdom,kingdom,phylum,class,order,family,genus,species",
                       help="Comma-separated list of ranks (by name or number, e.g. 1,5,9 or domain,phylum,species)")
   parser$add_argument("-l", "--lineage", default=rankedlineage_path, help=paste("Ranked lineage file [default:", rankedlineage_path, "]"))
+  parser$add_argument("-f", "--fill", action="store_true", help="Remove blank values in lineage (skip missing ranks)")
   args <- parser$parse_args()
   
   # Parse ranks argument
@@ -126,6 +140,7 @@ if (interactive() == FALSE) {
     taxid_file = args$input,
     output_html = args$output,
     rankedlineage_file = args$lineage,
-    ranks = ranks
+    ranks = ranks,
+    fill = args$fill
   )
 }
