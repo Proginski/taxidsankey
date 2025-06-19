@@ -110,8 +110,13 @@ taxidsankey <- function(
     Target = "target",
     Value = "value",
     NodeID = "name",
-    fontSize = 36,
-    nodeWidth = 30
+    fontSize = 30,      # Reduced font size for less overlap
+    nodeWidth = 40,     # Slightly wider nodes
+    nodePadding = 30,
+    # width = 2400,       # Wider diagram
+    # height = 900,       # Taller diagram
+    iterations = 1000    # More layout iterations for better node placement
+    # sinksRight = FALSE # Uncomment if you want to try left/right layout
   )
   saveNetwork(sankey, file = output_html)
 }
